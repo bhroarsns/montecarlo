@@ -1,49 +1,41 @@
-mod metropolis_heistings;
-mod models;
+pub mod transitions;
+pub mod states;
 
-use rand::Rng;
+use crate::transitions::*;
+use std::io::Write;
 
-pub trait Transition<S> {
-    fn get_next_state_from_random_f64(&self, state: &S, trial:f64) -> S;
+pub fn mcmc_step<T: Transition>(
+    current: &T::State,
+    transition: &mut T,
+) -> T::State {
+    transition.get_next_state(current)
 }
 
-pub fn mcmc_step<S, T: Transition<S>, G: Rng + ?Sized>(
-    current: &S,
-    transition: &T,
-    generator:&mut G
-) -> S {
-    let trial: f64 = generator.gen();
-    transition.get_next_state_from_random_f64(current, trial)
-}
-
-pub fn execute_mcmc<S, T: Transition<S>, G: Rng + ?Sized, R: std::fmt::Debug>(
-    init: &S,
-    transition: &T,
+pub fn execute_mcmc<W: Transition, R: std::fmt::Debug, T: Write>(
+    init: &W::State,
+    transition: &mut W,
     thermalization_step: u64,
     observation_step: u64,
-    generator:&mut G,
-    observe: fn(&S) -> R,
-    verbose: bool,
+    observe: fn(&W::State) -> R,
+    mut out: T,
 ) -> Vec<R> {
-    let mut state = mcmc_step(init, transition, generator);
+    let mut state = mcmc_step(init, transition);
     if thermalization_step > 0 {
         for _ in 0..(thermalization_step-1) {
-            state = mcmc_step(&state, transition, generator)
+            state = mcmc_step(&state, transition)
         }
     }
+    
     let mut result = Vec::new();
     if observation_step > 0 {
         for _ in 0..(observation_step-1) {
             result.push(observe(&state));
-            if verbose {
-                println!("{:?}", observe(&state));
-            }
-            state = mcmc_step(&state, transition, generator);
+            writeln!(out, "{:?}", observe(&state)).unwrap();
+            state = mcmc_step(&state, transition);
         }
     }
     result.push(observe(&state));
-    if verbose {
-        println!("{:?}", observe(&state));
-    }
+    
+    writeln!(out, "{:?}", observe(&state)).unwrap();
     result
 }
