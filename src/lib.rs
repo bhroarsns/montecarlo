@@ -1,41 +1,36 @@
-pub mod transitions;
-pub mod states;
+pub mod methods;
+pub mod models;
 
-use crate::transitions::*;
 use std::io::Write;
+use std::fmt::Debug;
 
-pub fn mcmc_step<T: Transition>(
-    current: &T::State,
-    transition: &mut T,
-) -> T::State {
-    transition.get_next_state(current)
+pub trait Transition {
+    type State;
+    fn state(&self) -> Self::State;
+    fn set_state(&mut self, state: &Self::State);
+    fn get_next_state(&mut self);
 }
 
-pub fn execute_mcmc<W: Transition, R: std::fmt::Debug, T: Write>(
-    init: &W::State,
+pub fn execute_mcmc<W: Transition, R: Debug, T: Write>(
     transition: &mut W,
     thermalization_step: u64,
     observation_step: u64,
-    observe: fn(&W::State) -> R,
+    observe: fn(&W) -> R,
     mut out: T,
 ) -> Vec<R> {
-    let mut state = mcmc_step(init, transition);
-    if thermalization_step > 0 {
-        for _ in 0..(thermalization_step-1) {
-            state = mcmc_step(&state, transition)
-        }
+    for _ in 0..thermalization_step {
+        transition.get_next_state();
     }
-    
+
     let mut result = Vec::new();
     if observation_step > 0 {
-        for _ in 0..(observation_step-1) {
-            result.push(observe(&state));
-            writeln!(out, "{:?}", observe(&state)).unwrap();
-            state = mcmc_step(&state, transition);
+        for _ in 0..observation_step {
+            transition.get_next_state();
+            let tmp = observe(&transition);
+            writeln!(out, "{:?}", tmp).unwrap();
+            result.push(tmp);
         }
     }
-    result.push(observe(&state));
     
-    writeln!(out, "{:?}", observe(&state)).unwrap();
     result
 }
