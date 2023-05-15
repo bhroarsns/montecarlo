@@ -7,7 +7,7 @@ pub enum Neighboring {
 pub trait SpinTransition {
     type Distance;
     fn distance(&self, i:usize, j:usize) -> Self::Distance;
-    fn from_spin(&mut self, spin_config: Vec<u64>);
+    fn from_spin(&mut self, spin_config: &Vec<u64>);
     fn spin_size(&self, i:usize) -> u64;
     fn spins(&self) -> Vec<u64>;
 
