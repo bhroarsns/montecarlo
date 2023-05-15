@@ -15,13 +15,13 @@ pub trait SpinTransition {
         self.spins().iter().sum()
     }
 
-    fn change_spin(&mut self, i: usize, value:u64) -> Vec<u64> {
+    fn change_spin(&self, i: usize, value:u64) -> Vec<u64> {
         let mut spins = self.spins();
         spins[i] = value;
         spins
     }
     
-    fn change_spins(&mut self, indices: Vec<usize>, values: Vec<u64>) -> Vec<u64> {
+    fn change_spins(&self, indices: Vec<usize>, values: Vec<u64>) -> Vec<u64> {
         let mut spins = self.spins();
         for index in indices {
             spins[index] = values[index];
