@@ -33,12 +33,12 @@ pub trait SpinTransition {
 pub trait GibbsWeight {
     type State;
     fn state(&self) -> Self::State;
-    fn energy(state: &Self::State) -> f64;
+    fn energy(&self, state: &Self::State) -> f64;
     fn energy_of_current_state(&self) -> f64 {
-        Self::energy(&self.state())
+        self.energy(&self.state())
     }
     fn beta(&self) -> f64;
     fn relative_probability(&self, state: &Self::State) -> f64 {
-        (self.beta() * (Self::energy(state) - self.energy_of_current_state())).exp()
+        (self.beta() * (self.energy(state) - self.energy_of_current_state())).exp()
     }
 }
