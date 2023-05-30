@@ -5,9 +5,6 @@ use std::io::Write;
 use std::fmt::Debug;
 
 pub trait Transition {
-    type State;
-    fn state(&self) -> Self::State;
-    fn set_state(&mut self, state: &Self::State);
     fn get_next_state(&mut self);
 }
 

@@ -10,7 +10,6 @@ pub trait MetropolisHastings {
         }
     }
     fn set_state(&mut self, state: &Self::State);
-    fn state(&self) -> Self::State;
 }
 
 pub trait ClusterUpdate {
